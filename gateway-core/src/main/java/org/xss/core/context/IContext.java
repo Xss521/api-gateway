@@ -81,7 +81,7 @@ public interface IContext {
     /**
      * 设置返回对象
      */
-    Object setResponse(Object response);
+    void setResponse(Object response);
 
     /**
      * 设置异常对象
@@ -89,6 +89,23 @@ public interface IContext {
     void setThrowable(Throwable e);
 
     Throwable getThrowable();
+
+    /**
+     * 获取上下文参数
+     * @param key
+     * @return
+     * @param <T>
+     */
+    <T> T getAttribute(String key);
+
+    /**
+     *
+     * @param key
+     * @param value
+     * @return
+     * @param <T>
+     */
+    <T> T putAttribute(String key, T value);
 
     /**
      * 获取netty上下文
@@ -101,7 +118,7 @@ public interface IContext {
     /**
      * 释放资源
      */
-    boolean releaseRequest();
+    void releaseRequest();
 
     /**
      * 设置写回接收回调函数

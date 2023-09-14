@@ -13,31 +13,48 @@ import java.util.function.Consumer;
  * @author MR.XSS
  * @version 1.0
  * 2023/9/13 13:30
+ * <h3>基础上下文</h1>
  */
-public class BaseContext implements IContext {
+public abstract class BaseContext implements IContext {
 
-    //协议类型
+    /**
+     * 协议类型
+     */
     protected final String protocol;
 
-    //多线程条件下考虑使用volatile关键字
+    /**
+     * 多线程条件下考虑使用volatile关键字
+     */
     protected volatile int status = IContext.RUNNING;
 
-    //Netty上下文
+    /**
+     * Netty上下文
+     */
     protected final ChannelHandlerContext nettyCtx;
 
-    //上下文参数
+    /**
+     * 上下文参数
+     */
     protected Map<String, Object> attributes = new HashMap<>();
 
-    //请求过程中异常
+    /**
+     * 请求过程中异常
+     */
     protected Throwable throwable;
 
-    //是否保持长连接
+    /**
+     * 是否保持长连接
+     */
     protected final boolean keepAlive;
 
-    //存放回调函数集合
+    /**
+     * 存放回调函数集合
+     */
     protected List<Consumer<IContext>> completedCallBacks;
 
-    //定义是否已经释放资源
+    /**
+     * 定义是否已经释放资源
+     */
     protected final AtomicBoolean requestReleased = new AtomicBoolean(false);
 
     public BaseContext(String protocol, ChannelHandlerContext nettyCtx, boolean keepAlive) {
@@ -92,21 +109,6 @@ public class BaseContext implements IContext {
     }
 
     @Override
-    public Object getRequest() {
-        return null;
-    }
-
-    @Override
-    public Object getResponse() {
-        return null;
-    }
-
-    @Override
-    public Object setResponse(Object response) {
-        return null;
-    }
-
-    @Override
     public void setThrowable(Throwable e) {
         this.throwable = e;
     }
@@ -114,6 +116,16 @@ public class BaseContext implements IContext {
     @Override
     public Throwable getThrowable() {
         return this.throwable;
+    }
+
+    @Override
+    public <T> T getAttribute(String key) {
+        return (T) attributes.get(key);
+    }
+
+    @Override
+    public <T> T putAttribute(String key, T value) {
+        return (T) attributes.put(key,value);
     }
 
     @Override
@@ -127,8 +139,8 @@ public class BaseContext implements IContext {
     }
 
     @Override
-    public boolean releaseRequest() {
-        return this.requestReleased.get();
+    public void releaseRequest() {
+        this.requestReleased.compareAndSet(false,true);
     }
 
     @Override

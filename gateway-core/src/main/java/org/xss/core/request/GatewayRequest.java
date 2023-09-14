@@ -20,6 +20,7 @@ import java.util.*;
  * @author MR.XSS
  * @version 1.0
  * 2023/9/13 16:58
+ * <h3>网关Request请求</h3>
  */
 public class GatewayRequest implements IGatewayRequest {
 
@@ -237,60 +238,64 @@ public class GatewayRequest implements IGatewayRequest {
 
     @Override
     public void setModifyHost(String host) {
+        this.modifyHost = host;
     }
 
     @Override
     public String getModifyHost() {
-        return null;
+        return this.modifyHost;
     }
 
     @Override
     public void setModifyPath(String path) {
-
+        this.modifyPath = path;
     }
 
     @Override
     public String getModifyPath() {
-        return null;
+        return this.modifyPath;
     }
 
     @Override
     public void addHeader(CharSequence name, String value) {
-
+        requestBuilder.addHeader(name, value);
     }
 
     @Override
     public void setHeader(CharSequence name, String value) {
-
+        requestBuilder.setHeader(name, value);
     }
 
     @Override
     public void addQueryParam(String name, String value) {
-
+        requestBuilder.addQueryParam(name, value);
     }
 
     @Override
     public void addFormParam(String name, String value) {
-
+        if (isFormPost()) {
+            requestBuilder.addFormParam(name, value);
+        }
     }
 
     @Override
     public void addOrReplaceCookie(Cookie cookie) {
-
+        requestBuilder.addOrReplaceCookie(cookie);
     }
 
     @Override
     public void setRequestTimeout(int requestTimeout) {
-
+        requestBuilder.setRequestTimeout(requestTimeout);
     }
 
     @Override
-    public String getFinalUrl(int requestTimeout) {
-        return null;
+    public String getFinalUrl() {
+        return modifyScheme + modifyHost + modifyPath;
     }
 
     @Override
     public Request build() {
-        return null;
+        requestBuilder.setUrl(getFinalUrl());
+        return requestBuilder.build();
     }
 }

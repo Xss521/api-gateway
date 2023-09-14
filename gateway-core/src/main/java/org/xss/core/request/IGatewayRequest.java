@@ -64,7 +64,7 @@ public interface IGatewayRequest {
     /**
      * 获取最终请求路径，包含请求参数
      */
-    String getFinalUrl(int requestTimeout);
+    String getFinalUrl();
 
     /**
      * 构建请求
