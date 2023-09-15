@@ -13,6 +13,7 @@ public class BootStrap {
          * 连接注册中心、将注册中心实例加载到本地
          * 服务优雅关机
          */
+        Config config = ConfigLoader.getInstance().load(args);
 
 
     }

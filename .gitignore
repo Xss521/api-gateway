@@ -8,3 +8,6 @@
 /dataSources.local.xml
 .idea
 .gitignore
+logs
+/gateway-core/target
+/gateway-common/target
