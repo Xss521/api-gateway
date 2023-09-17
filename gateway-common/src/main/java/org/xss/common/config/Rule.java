@@ -1,4 +1,4 @@
-package org.xss.common.rule;
+package org.xss.common.config;
 
 import lombok.Data;
 

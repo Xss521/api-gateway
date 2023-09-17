@@ -110,7 +110,7 @@ public interface IContext {
     /**
      * 获取netty上下文
      */
-    ChannelHandlerContext getContext();
+    ChannelHandlerContext getNettyCtx();
 
     //
     boolean isKeepAlive();
@@ -128,6 +128,6 @@ public interface IContext {
     /**
      * 执行回调函数
      */
-    void invokeCompletedCallBack(Consumer<IContext> consumer);
+    void invokeCompletedCallBack();
 
 }

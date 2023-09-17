@@ -129,7 +129,7 @@ public abstract class BaseContext implements IContext {
     }
 
     @Override
-    public ChannelHandlerContext getContext() {
+    public ChannelHandlerContext getNettyCtx() {
         return this.nettyCtx;
     }
 
@@ -152,7 +152,7 @@ public abstract class BaseContext implements IContext {
     }
 
     @Override
-    public void invokeCompletedCallBack(Consumer<IContext> consumer) {
+    public void invokeCompletedCallBack() {
             if (completedCallBacks != null){
                 completedCallBacks.forEach(call -> call.accept(this));
             }

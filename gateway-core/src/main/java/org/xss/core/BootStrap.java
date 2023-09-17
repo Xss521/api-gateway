@@ -14,7 +14,8 @@ public class BootStrap {
          * 服务优雅关机
          */
         Config config = ConfigLoader.getInstance().load(args);
-
-
+        System.out.println(config.getPort());
+        Container container = new Container(config);
+        container.start();
     }
 }

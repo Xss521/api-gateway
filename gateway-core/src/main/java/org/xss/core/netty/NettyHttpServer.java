@@ -12,10 +12,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.xss.common.utils.RemotingUtil;
 import org.xss.core.Config;
 import org.xss.core.LifeCycle;
+import org.xss.core.netty.process.NettyProcessor;
 
 import java.net.InetSocketAddress;
 
@@ -30,6 +32,7 @@ public class NettyHttpServer implements LifeCycle {
     //Netty相关配置
     private ServerBootstrap serverBootstrap;
     private EventLoopGroup eventLoopGroupBoss;
+    @Getter
     private EventLoopGroup eventLoopGroupWorker;
 
     private final NettyProcessor nettyProcessor;

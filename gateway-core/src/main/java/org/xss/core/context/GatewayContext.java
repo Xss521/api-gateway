@@ -2,7 +2,7 @@ package org.xss.core.context;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
-import org.xss.common.rule.Rule;
+import org.xss.common.config.Rule;
 import org.xss.common.utils.AssertUtil;
 import org.xss.core.request.GatewayRequest;
 import org.xss.core.response.GatewayResponse;
@@ -145,6 +145,7 @@ public class GatewayContext extends BaseContext {
     public void setResponse(Object response) {
         this.response = (GatewayResponse) response;
     }
+
 
     public Rule getRule() {
         return rule;

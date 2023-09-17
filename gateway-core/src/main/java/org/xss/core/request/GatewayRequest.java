@@ -131,12 +131,10 @@ public class GatewayRequest implements IGatewayRequest {
                           Charset charset,
                           String clientIp,
                           String host,
-                          String path,
                           String uri,
                           HttpMethod httpMethod,
                           String contentType,
                           HttpHeaders httpHeaders,
-                          QueryStringDecoder queryStringDecoder,
                           FullHttpRequest fullHttpRequest) {
         this.uniqueId = uniqueId;
         this.beginTime = TimeUtil.currentTimeMillis();

@@ -1,4 +1,4 @@
-package org.xss.core.netty;
+package org.xss.core.netty.process;
 
 import org.xss.core.context.HttpRequestWrapper;
 
@@ -8,5 +8,4 @@ import org.xss.core.context.HttpRequestWrapper;
  */
 public interface NettyProcessor {
     void process(HttpRequestWrapper wrapper);
-
 }

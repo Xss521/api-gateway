@@ -17,7 +17,7 @@ public class GatewayResponse {
     /**
      * 响应头信息
      */
-    private HttpHeaders responseHeads = new DefaultHttpHeaders();
+    private HttpHeaders responseHeaders = new DefaultHttpHeaders();
 
     /**
      * 额外响应头信息
@@ -27,7 +27,7 @@ public class GatewayResponse {
     /**
      * 响应内容
      */
-    private String context;
+    private String content;
 
     /**
      * 响应状态码
@@ -46,7 +46,7 @@ public class GatewayResponse {
      * 设置响应头信息
      */
     public void putHeader(CharSequence key, CharSequence value) {
-        this.responseHeads.add(key, value);
+        this.responseHeaders.add(key, value);
     }
 
     public static GatewayResponse buildGatewayResponse(Response futureResponse) {
@@ -68,7 +68,7 @@ public class GatewayResponse {
         GatewayResponse response = new GatewayResponse();
         response.setHttpResponseStatus(responseCode.getStatus());
         response.putHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON + ";charset=utf-8");
-        response.setContext(JSONUtil.toJSONString(objectNode));
+        response.setContent(JSONUtil.toJSONString(objectNode));
 
         return response;
     }
@@ -85,7 +85,7 @@ public class GatewayResponse {
         GatewayResponse response = new GatewayResponse();
         response.setHttpResponseStatus(ResponseCode.SUCCESS.getStatus());
         response.putHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON + ";charset=utf-8");
-        response.setContext(JSONUtil.toJSONString(objectNode));
+        response.setContent(JSONUtil.toJSONString(objectNode));
 
         return response;
     }
