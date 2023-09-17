@@ -57,9 +57,6 @@ public class NettyHttpServer implements LifeCycle {
         }
     }
 
-    public boolean useEpoll() {
-        return RemotingUtil.isLinuxPlatform() && Epoll.isAvailable();
-    }
 
     @Override
     public void start() {
@@ -84,6 +81,10 @@ public class NettyHttpServer implements LifeCycle {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean useEpoll() {
+        return RemotingUtil.isLinuxPlatform() && Epoll.isAvailable();
     }
 
     @Override

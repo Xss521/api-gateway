@@ -18,7 +18,6 @@ import org.xss.core.context.HttpRequestWrapper;
 import org.xss.core.help.AsyncHttpHelper;
 import org.xss.core.help.RequestHelper;
 import org.xss.core.help.ResponseHelper;
-import org.xss.core.request.GatewayRequest;
 import org.xss.core.response.GatewayResponse;
 
 import java.util.Objects;

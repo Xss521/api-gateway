@@ -11,3 +11,5 @@
 logs
 /gateway-core/target
 /gateway-common/target
+/backend-http-server/target
+/gateway-register-center/gateway-register-center-api/target

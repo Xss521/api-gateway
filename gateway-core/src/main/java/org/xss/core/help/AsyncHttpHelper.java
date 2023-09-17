@@ -8,21 +8,18 @@ import java.util.concurrent.CompletableFuture;
  * 异步的http辅助类
  */
 public class AsyncHttpHelper {
+	private AsyncHttpClient asyncHttpClient;
+
+	private AsyncHttpHelper() {}
 
 	private static final class SingletonHolder {
 		private static final AsyncHttpHelper INSTANCE = new AsyncHttpHelper();
 	}
 	
-	private AsyncHttpHelper() {
-		
-	}
-	
 	public static AsyncHttpHelper getInstance() {
 		return SingletonHolder.INSTANCE;
 	}
-	
-	private AsyncHttpClient asyncHttpClient;
-	
+
 	public void initialized(AsyncHttpClient asyncHttpClient) {
 		this.asyncHttpClient = asyncHttpClient;
 	}
@@ -36,5 +33,4 @@ public class AsyncHttpHelper {
 		ListenableFuture<T> future = asyncHttpClient.executeRequest(request, handler);
 		return future.toCompletableFuture();
 	}
-	
 }
