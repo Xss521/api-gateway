@@ -31,6 +31,35 @@ public class ResponseHelper {
         return httpResponse;
     }
 
+
+    /**
+     * 写回响应信息方法
+     */
+    public static void writeResponse(IContext context) {
+
+        //	释放资源
+        context.releaseRequest();
+
+        if (context.isWritten()) {
+            //	1：第一步构建响应对象，并写回数据
+            FullHttpResponse httpResponse = ResponseHelper.getHttpResponse(context, (GatewayResponse) context.getResponse());
+            if (!context.isKeepAlive()) {
+                context.getNettyCtx()
+                        .writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE);
+            }
+            //	长连接：
+            else {
+                httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+                context.getNettyCtx().writeAndFlush(httpResponse);
+            }
+            //	2:	设置写回结束状态为： COMPLETED
+            context.completed();
+        } else if (context.isCompleted()) {
+            context.invokeCompletedCallBack();
+        }
+
+    }
+
     /**
      * 通过上下文对象和Response对象 构建FullHttpResponse
      */
@@ -62,35 +91,6 @@ public class ResponseHelper {
             httpResponse.headers().add(gatewayResponse.getFutureResponse().getHeaders());
             return httpResponse;
         }
-    }
-
-
-    /**
-     * 写回响应信息方法
-     */
-    public static void writeResponse(IContext context) {
-
-        //	释放资源
-        context.releaseRequest();
-
-        if (context.isWritten()) {
-            //	1：第一步构建响应对象，并写回数据
-            FullHttpResponse httpResponse = ResponseHelper.getHttpResponse(context, (GatewayResponse) context.getResponse());
-            if (!context.isKeepAlive()) {
-                context.getNettyCtx()
-                        .writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE);
-            }
-            //	长连接：
-            else {
-                httpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-                context.getNettyCtx().writeAndFlush(httpResponse);
-            }
-            //	2:	设置写回结束状态为： COMPLETED
-            context.completed();
-        } else if (context.isCompleted()) {
-            context.invokeCompletedCallBack();
-        }
-
     }
 
 }

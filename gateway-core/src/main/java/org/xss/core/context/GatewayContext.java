@@ -106,24 +106,28 @@ public class GatewayContext extends BaseContext {
     /**
      * 获取指定的过滤器对象
      */
-    public Rule.FilterConfig getFilterConfig(String filterId){
+    public Rule.FilterConfig getFilterConfig(String filterId) {
         return rule.getFilterConfig(filterId);
     }
 
     /**
      * 获取服务ID
      */
-    public String getUniqueId(){
+    public String getUniqueId() {
         return request.getUniqueId();
     }
 
 
     /**
-     * 重写覆盖父类，真正的释放资源
+     * @author ==> 许帅帅
+     * @return: void
+     * @date 2023/9/19 13:00
+     *@功能描述: 重写覆盖父类，真正的释放资源，
+     * 在Netty中，HttpServletRequest对象是一个长连接，需要手动关闭以释放资源。ReferenceCountUtil.release()方法可以用于释放对象占用的内存空间，避免内存泄漏
      */
     @Override
-    public void releaseRequest(){
-        if (requestReleased.compareAndSet(false,true)){
+    public void releaseRequest() {
+        if (requestReleased.compareAndSet(false, true)) {
             ReferenceCountUtil.release(request.getFullHttpRequest());
         }
     }

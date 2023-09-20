@@ -51,15 +51,25 @@ public class NettyCoreProcessor implements NettyProcessor {
         }
     }
 
+    /**
+     * @author: MR.XSS
+     * @Params: [context, request, httpResponse]
+     * @return: void
+     * @date 2023/9/19 13:24
+     * @描述: 写回响应结果，然后释放内存
+     */
     private void doWriteAndRelease(ChannelHandlerContext context, FullHttpRequest request, FullHttpResponse httpResponse) {
         context.writeAndFlush(httpResponse)
                 .addListener(ChannelFutureListener.CLOSE); //释放资源后关闭Channel
-
         ReferenceCountUtil.release(request);
     }
 
     /**
-     * 路由请求转发
+     * @author: MR.XSS
+     * @Params: [gatewayContext]
+     * @return: void
+     * @date 2023/9/19 13:17
+     * @描述: 使用AsyncHttpClient进行对Request请求进行处理，实现异步通讯，实现大吞吐量
      */
     private void route(GatewayContext gatewayContext) {
         Request request = gatewayContext.getRequest().build();
@@ -75,16 +85,20 @@ public class NettyCoreProcessor implements NettyProcessor {
     }
 
     /**
-     * 对请求进行处理
+     * @author: MR.XSS
+     * @Params: [request, response, throwable, ctx]
+     * @return: void
+     * @date 2023/9/19 13:14
+     * @描述: 完成对服务请求的处理，并且写回服务响应结果，若在途中发现异常，对异常进行处理
      */
     private void complete(Request request,
                           Response response,
                           Throwable throwable,
                           GatewayContext ctx) {
-        //释放请求资源
+        //处理完成Request请求时，释放请求资源，避免造成内存泄漏
         ctx.releaseRequest();
         try {
-            //出现异常
+            //出现异常，将异常设置到上席文对象中去
             if (Objects.nonNull(throwable)) {
                 String url = request.getUrl();
                 if (throwable instanceof TimeoutException) {
@@ -94,13 +108,14 @@ public class NettyCoreProcessor implements NettyProcessor {
                     ctx.setThrowable(new ConnectException(throwable, ctx.getUniqueId(), url, ResponseCode.HTTP_RESPONSE_ERROR));
                 }
             } else {
-                //返回响应结果
+                //访问成功，将返回结果设置到上下文对象
                 ctx.setResponse(GatewayResponse.buildGatewayResponse(response));
             }
         } catch (Exception e) {
             ctx.setThrowable(new ResponseException(ResponseCode.INTERNAL_ERROR));
             log.error("complete error ", e);
         } finally {
+            //处理结束，标记为写回状态，并且将响应结果返回
             ctx.written();
             ResponseHelper.writeResponse(ctx);
         }

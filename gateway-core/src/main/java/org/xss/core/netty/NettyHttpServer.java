@@ -68,8 +68,11 @@ public class NettyHttpServer implements LifeCycle {
                     @Override
                     protected void initChannel(Channel channel) throws Exception {
                         channel.pipeline().addLast(
+                                //http消息编码器，但是只能处理请求中的URI中的数据，无法处理请求体中的内容
                                 new HttpServerCodec(),
+                                //可以对POST请求中的请求体内容进行处理
                                 new HttpObjectAggregator(config.getMaxContextLength()),
+                                //自定义Handler
                                 new NettyServerConnectManagerHandler(),
                                 new NettyHttpServerHandler(nettyProcessor)
                         );

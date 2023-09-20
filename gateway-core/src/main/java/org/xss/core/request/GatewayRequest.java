@@ -153,6 +153,7 @@ public class GatewayRequest implements IGatewayRequest {
         this.modifyPath = path;
         this.modifyScheme = BasicConst.HTTP_PREFIX_SEPARATOR;
 
+        //构建RequestBuilder对象，方便构建Request对象
         this.requestBuilder = new RequestBuilder();
         this.requestBuilder.setMethod(getHttpMethod().name());
         this.requestBuilder.setHeaders(getHttpHeaders());
@@ -291,6 +292,12 @@ public class GatewayRequest implements IGatewayRequest {
         return modifyScheme + modifyHost + modifyPath;
     }
 
+    /**
+    *@author ==> 许帅帅
+    *@return: org.asynchttpclient.Request
+    *@date 2023/9/19 12:41
+    *功能描述: 构建AsyncHttpClient的请求对象
+    */
     @Override
     public Request build() {
         requestBuilder.setUrl(getFinalUrl());

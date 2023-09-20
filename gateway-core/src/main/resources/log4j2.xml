@@ -35,7 +35,7 @@
 	  </Appenders>
 	  
 	<Loggers>
-	    <Logger name="com.xss.gateway.core.*" level="info" includeLocation="true">
+	    <Logger name="org.xss.core.*" level="info" includeLocation="true">
 	      <AppenderRef ref="RandomAccessFile"/>
 	    </Logger>
    

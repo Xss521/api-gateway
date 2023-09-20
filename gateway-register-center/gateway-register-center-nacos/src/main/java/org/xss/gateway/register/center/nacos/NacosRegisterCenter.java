@@ -8,7 +8,9 @@ import com.alibaba.nacos.api.naming.NamingMaintainService;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.Event;
 import com.alibaba.nacos.api.naming.listener.EventListener;
+import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.alibaba.nacos.api.naming.pojo.Service;
 import com.alibaba.nacos.api.naming.pojo.ServiceInfo;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.xss.gateway.register.center.api.RegisterCenter;
 import org.xss.gateway.register.center.api.RegisterCenterListener;
 
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +51,13 @@ public class NacosRegisterCenter implements RegisterCenter {
     private List<RegisterCenterListener> registerCenterListenerList;
 
 
+    /**
+    *@author: MR.XSS
+    *@Params: [registerAddr, env]
+    *@return: void
+    *@date 2023/9/19 17:06
+    *@描述: 初始化
+    */
     @Override
     public void init(String registerAddr, String env) {
         this.registerCenterAddr = registerAddr;
@@ -57,15 +67,21 @@ public class NacosRegisterCenter implements RegisterCenter {
             this.namingMaintainService = NamingMaintainFactory.createMaintainService(registerCenterAddr);
             this.namingService = NamingFactory.createNamingService(registerCenterAddr);
         } catch (NacosException e) {
-
             throw new RuntimeException(e);
         }
     }
 
+    /**
+    *@author: MR.XSS
+    *@Params: [serviceDefinition, serviceInstance]
+    *@return: void
+    *@date 2023/9/19 17:09
+    *@描述: 将网关服务实例注册到Nacos上
+    */
     @Override
     public void register(ServiceDefinition serviceDefinition, ServiceInstance serviceInstance) {
         try {
-            //构建Nacos实例信息--》 将serviceInstance转化为NacosInstance
+            //构建Nacos实例信息 --> 将serviceInstance转化为NacosInstance
             Instance nacosInstance = new Instance();
             nacosInstance.setInstanceId(serviceInstance.getServiceInstanceId());
             nacosInstance.setIp(serviceInstance.getIp());
@@ -102,7 +118,7 @@ public class NacosRegisterCenter implements RegisterCenter {
         //可能有新服务加入，所以需要一个定时任务检查
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1, new DefaultThreadFactory("doSubscribeAllServices"));
         //每十秒对服务列表进行刷新一次
-        scheduledThreadPool.scheduleWithFixedDelay(()->doSubscribeAllServices(),10,10, TimeUnit.SECONDS);
+        scheduledThreadPool.scheduleWithFixedDelay(() -> doSubscribeAllServices(), 10, 10, TimeUnit.SECONDS);
     }
 
     private void doSubscribeAllServices() {
@@ -144,6 +160,30 @@ public class NacosRegisterCenter implements RegisterCenter {
 
         @Override
         public void onEvent(Event event) {
+            if (event instanceof NamingEvent) {
+                NamingEvent namingEvent = (NamingEvent) event;
+                String serviceName = namingEvent.getServiceName();
+
+                try {
+                    //获取服务定义信息
+                    Service service = namingMaintainService.queryService(serviceName, env);
+                    ServiceDefinition serviceDefinition = JSON.parseObject(service.getMetadata().get(GatewayConst.META_DATA_KEY), ServiceDefinition.class);
+
+                    //获取实例信息
+                    List<Instance> allInstances = namingService.getAllInstances(serviceName, env);
+                    Set<ServiceInstance> set = new HashSet<>();
+
+                    for (Instance instance : allInstances) {
+                        ServiceInstance serviceInstance = JSON.parseObject(instance.getMetadata().get(GatewayConst.META_DATA_KEY), ServiceInstance.class);
+                        set.add(serviceInstance);
+                    }
+                    registerCenterListenerList.forEach(listener -> {
+                        listener.onChange(serviceDefinition, set);
+                    });
+                } catch (NacosException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
         }
     }
