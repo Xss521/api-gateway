@@ -7,10 +7,12 @@ import org.xss.common.config.ServiceDefinition;
 import org.xss.common.config.ServiceInstance;
 import org.xss.common.utils.NetUtils;
 import org.xss.common.utils.TimeUtil;
+import org.xss.gateway.config.center.api.ConfigCenter;
 import org.xss.gateway.register.center.api.RegisterCenter;
 import org.xss.gateway.register.center.api.RegisterCenterListener;
 
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 import static org.xss.common.constants.BasicConst.COLON_SEPARATOR;
@@ -28,6 +30,15 @@ public class BootStrap {
 
         //插件初始化
         //配置中心管理器初始化，连接配置中心，监听配置新增、修改、删除
+        ServiceLoader<ConfigCenter> serviceLoader = ServiceLoader.load(ConfigCenter.class);
+        final ConfigCenter configCenter = serviceLoader.findFirst().orElseThrow(() -> {
+            log.error("not found ConfigCenter impl");
+            return new RuntimeException("not found ConfigCenter impl");
+        });
+        configCenter.init(config.getRegisterAddr(), config.getEnv());
+        configCenter.subscribeRuleChange(rules -> DynamicConfigManager.getInstance().putAllRule(rules));
+
+
         //启动容器
         Container container = new Container(config);
         container.start();
@@ -35,7 +46,7 @@ public class BootStrap {
 
         // 连接注册中心、将注册中心实例加载到本地
         //构建网关服务定义和实例信息,并且对实例信息进行订阅和刷新
-        RegisterCenter registerCenter = registerAndSubscribe(config);
+        final RegisterCenter registerCenter = registerAndSubscribe(config);
 
 
         // 服务优雅关机
@@ -52,7 +63,12 @@ public class BootStrap {
 
 
     private static RegisterCenter registerAndSubscribe(Config config) {
-        final RegisterCenter registerCenter = null;
+        ServiceLoader<RegisterCenter> serviceLoader = ServiceLoader.load(RegisterCenter.class);
+        final RegisterCenter registerCenter = serviceLoader.findFirst().orElseThrow(() -> {
+            log.error("not found RegisterCenter impl");
+            return new RuntimeException("not found RegisterCenter impl");
+        });
+        registerCenter.init(config.getRegisterAddr(), config.getEnv());
 
         //构造网关服务定义和服务实例
         ServiceDefinition serviceDefinition = buildGatewayServiceDefinition(config);

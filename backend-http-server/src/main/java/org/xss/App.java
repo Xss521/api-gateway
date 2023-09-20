@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Hello world!
  *
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "org.xss")
 public class App 
 {
     public static void main( String[] args )

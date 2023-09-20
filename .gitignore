@@ -13,5 +13,8 @@ logs
 /gateway-common/target
 /backend-http-server/target
 /gateway-register-center/gateway-register-center-api/target
-/backend-dubbo-server
-/backend-http-server
+/backend-http-server/
+/backend-dubbo-server/
+/gateway-client/target/classes
+/gateway-config-center
+/gateway-register-center
