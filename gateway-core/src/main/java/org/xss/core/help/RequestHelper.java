@@ -3,11 +3,8 @@ package org.xss.core.help;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import org.apache.commons.lang3.StringUtils;
-import org.xss.common.config.HttpServiceInvoker;
-import org.xss.common.config.ServiceDefinition;
-import org.xss.common.config.ServiceInvoker;
+import org.xss.common.config.*;
 import org.xss.common.constants.BasicConst;
-import org.xss.common.config.Rule;
 import org.xss.common.constants.GatewayConst;
 import org.xss.common.constants.GatewayProtocol;
 import org.xss.core.context.GatewayContext;
@@ -20,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.xss.common.enums.ResponseCode.PATH_NO_MATCHED;
+
 
 public class RequestHelper {
 
@@ -30,7 +29,7 @@ public class RequestHelper {
 		
 		//	根据请求对象里的uniqueId，获取资源服务信息(也就是服务定义信息)
 		ServiceDefinition serviceDefinition = ServiceDefinition.builder()
-				.serviceId("demo")
+				.serviceId(gateWayRequest.getUniqueId())
 				.enable(true)
 				.version("v1")
 				.patternPath("**")
@@ -44,6 +43,8 @@ public class RequestHelper {
 		serviceInvoker.setInvokerPath(gateWayRequest.getPath());
 		serviceInvoker.setTimeout(500);
 
+		//根据请求对象获取Rule
+		Rule rule = getRule(gateWayRequest);
 		
 		//	构建我们而定GateWayContext对象
 		GatewayContext gatewayContext = new GatewayContext(
@@ -108,5 +109,21 @@ public class RequestHelper {
 			clientIp = inetSocketAddress.getAddress().getHostAddress();
 		}
 		return clientIp;
+	}
+
+	private static Rule getRule(GatewayRequest gateWayRequest){
+		String key = gateWayRequest.getUniqueId() + "." + gateWayRequest.getPath();
+		Rule rule = DynamicConfigManager.getInstance().getRuleByPath(key);
+
+		if (rule != null){
+			return rule;
+		}
+
+		return DynamicConfigManager.getInstance().getRuleByServiceId(gateWayRequest.getUniqueId())
+				.stream().filter(r -> gateWayRequest.getPath().startsWith(r.getPrefix()))
+				.findAny()
+				.orElseThrow(() -> new RuntimeException(PATH_NO_MATCHED.getMessage()));
+
+
 	}
 }

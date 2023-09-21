@@ -15,6 +15,8 @@ import org.xss.common.exception.ResponseException;
 import org.xss.core.ConfigLoader;
 import org.xss.core.context.GatewayContext;
 import org.xss.core.context.HttpRequestWrapper;
+import org.xss.core.filter.FilterFactory;
+import org.xss.core.filter.GatewayFilterChainFactory;
 import org.xss.core.help.AsyncHttpHelper;
 import org.xss.core.help.RequestHelper;
 import org.xss.core.help.ResponseHelper;
@@ -31,6 +33,11 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class NettyCoreProcessor implements NettyProcessor {
 
+    /**
+     * 获取到过滤器工厂
+     */
+    private FilterFactory filterFactory = GatewayFilterChainFactory.getInstance();
+
     @Override
     public void process(HttpRequestWrapper wrapper) {
         FullHttpRequest request = wrapper.getRequest();
@@ -39,6 +46,9 @@ public class NettyCoreProcessor implements NettyProcessor {
         try {
             //进行类型转换，转换为Gateway上下文对象
             GatewayContext gatewayContext = RequestHelper.doContext(request, context);
+
+            //执行过滤器规则
+            filterFactory.buildFilterChain(gatewayContext).doFilter(gatewayContext);
             route(gatewayContext);
         } catch (BaseException e) {
             log.error("process error {} {}", e.getCode().getCode(), e.getCode().getMessage());

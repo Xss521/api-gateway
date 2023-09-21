@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 /**
  * @author MR.XSS
  * 2023/9/17 14:03
+ * 注册中心配置，主要是将现有的服务注册到Nacos注册中心，
  */
 @Slf4j
 public class NacosRegisterCenter implements RegisterCenter {
@@ -48,16 +50,16 @@ public class NacosRegisterCenter implements RegisterCenter {
     //主要用于维护服务定义信息
     private NamingMaintainService namingMaintainService;
 
-    private List<RegisterCenterListener> registerCenterListenerList;
+    private List<RegisterCenterListener> registerCenterListenerList = new CopyOnWriteArrayList<>();
 
 
     /**
-    *@author: MR.XSS
-    *@Params: [registerAddr, env]
-    *@return: void
-    *@date 2023/9/19 17:06
-    *@描述: 初始化
-    */
+     * @author: MR.XSS
+     * @Params: [registerAddr, env]
+     * @return: void
+     * @date 2023/9/19 17:06
+     * @描述: 初始化
+     */
     @Override
     public void init(String registerAddr, String env) {
         this.registerCenterAddr = registerAddr;
@@ -72,12 +74,12 @@ public class NacosRegisterCenter implements RegisterCenter {
     }
 
     /**
-    *@author: MR.XSS
-    *@Params: [serviceDefinition, serviceInstance]
-    *@return: void
-    *@date 2023/9/19 17:09
-    *@描述: 将网关服务实例注册到Nacos上
-    */
+     * @author: MR.XSS
+     * @Params: [serviceDefinition, serviceInstance]
+     * @return: void
+     * @date 2023/9/19 17:09
+     * @描述: 将网关服务实例注册到Nacos上
+     */
     @Override
     public void register(ServiceDefinition serviceDefinition, ServiceInstance serviceInstance) {
         try {
@@ -103,7 +105,7 @@ public class NacosRegisterCenter implements RegisterCenter {
     @Override
     public void deregister(ServiceDefinition serviceDefinition, ServiceInstance serviceInstance) {
         try {
-            namingService.registerInstance(serviceDefinition.getServiceId(),
+            namingService.deregisterInstance(serviceDefinition.getServiceId(),
                     env, serviceInstance.getIp(), serviceInstance.getPort());
         } catch (NacosException e) {
             throw new RuntimeException(e);
@@ -132,19 +134,21 @@ public class NacosRegisterCenter implements RegisterCenter {
             int pageNo = 1;
             int pageSize = 100;
 
-            //Nacos事件监听器
-            EventListener eventListener = new NacosRegisterListener();
 
             //分页从Nacos拿到服务列表
             List<String> serviceList = namingService.getServicesOfServer(pageNo, pageSize, env).getData();
-            while (CollectionUtils.isNotEmpty(serviceList)) {
+            while (serviceList.size() == pageSize) {
                 log.info("service size is {}", serviceList.size());
 
                 for (String service : serviceList) {
                     if (subscribeService.contains(service)) {
                         continue;
                     }
-                    namingService.subscribe(service, eventListener);
+
+                    //Nacos事件监听器
+                    EventListener eventListener = new NacosRegisterListener();
+                    eventListener.onEvent(new NamingEvent(service, null));
+                    namingService.subscribe(service, env, eventListener);
                     log.info("subscribe {} []", service, env);
                 }
 

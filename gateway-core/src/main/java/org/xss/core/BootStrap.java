@@ -35,6 +35,7 @@ public class BootStrap {
             log.error("not found ConfigCenter impl");
             return new RuntimeException("not found ConfigCenter impl");
         });
+        //初始化配置中心
         configCenter.init(config.getRegisterAddr(), config.getEnv());
         configCenter.subscribeRuleChange(rules -> DynamicConfigManager.getInstance().putAllRule(rules));
 

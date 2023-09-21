@@ -29,6 +29,13 @@ public class NacosConfigCenter implements ConfigCenter {
     private ConfigService configService;
 
 
+    /**
+     * @author: MR.XSS
+     * @Params: [serverAddr, env]
+     * @return: void
+     * @date 2023/9/21 9:12
+     * @描述: 初始化注册中心配置
+     */
     @Override
     public void init(String serverAddr, String env) {
         this.serverAddr = serverAddr;
@@ -40,6 +47,13 @@ public class NacosConfigCenter implements ConfigCenter {
         }
     }
 
+    /**
+     *@author: MR.XSS
+     *@Params: [listener]
+     *@return: void
+     *@date 2023/9/21 9:12
+     *@描述: 订阅Nacos配置，监听Nacos配置中心配置变化，变化情况如何处理交给子类去实现
+     */
     @Override
     public void subscribeRuleChange(RulesChangeListener listener) {
         try {
@@ -50,13 +64,14 @@ public class NacosConfigCenter implements ConfigCenter {
             List<Rule> rules = JSON.parseObject(config).getJSONArray("rules").toJavaList(Rule.class);
             listener.onRuleChange(rules);
 
-            //监听变化
+            //Nacos的API，监听名字为api-gateway的配置的变化情况
             configService.addListener(DATA_ID, env, new Listener() {
                 @Override
                 public Executor getExecutor() {
                     return null;
                 }
 
+                //监听服务变化，具体交给启动类实现
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     log.info("config from nacos: {}", configInfo);

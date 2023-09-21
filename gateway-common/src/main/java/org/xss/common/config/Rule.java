@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,6 +33,22 @@ public class Rule implements Comparable<Rule>, Serializable {
     private String protocol;
 
     /**
+     * 服务ID
+     */
+    private String serviceId;
+
+    /**
+     * 请求前缀
+     */
+    private String prefix;
+
+    /**
+     * 路径集合
+     */
+    private List<String> paths;
+
+
+    /**
      * 规则优先级
      */
     private Integer order;
@@ -45,11 +62,13 @@ public class Rule implements Comparable<Rule>, Serializable {
         super();
     }
 
-    public Rule(String id, String name, String protocol, Integer order, Set<FilterConfig> filterConfigs) {
-        super();
+    public Rule(String id, String name, String protocol, String serviceId, String prefix, List<String> paths, Integer order, Set<FilterConfig> filterConfigs) {
         this.id = id;
         this.name = name;
         this.protocol = protocol;
+        this.serviceId = serviceId;
+        this.prefix = prefix;
+        this.paths = paths;
         this.order = order;
         this.filterConfigs = filterConfigs;
     }
