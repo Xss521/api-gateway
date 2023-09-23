@@ -12,7 +12,7 @@ import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.alibaba.nacos.api.naming.pojo.Service;
 import com.alibaba.nacos.api.naming.pojo.ServiceInfo;
-import io.netty.util.concurrent.DefaultThreadFactory;
+import com.alibaba.nacos.common.executor.NameThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.xss.common.config.ServiceDefinition;
@@ -118,8 +118,8 @@ public class NacosRegisterCenter implements RegisterCenter {
         doSubscribeAllServices();
 
         //可能有新服务加入，所以需要一个定时任务检查
-        ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1, new DefaultThreadFactory("doSubscribeAllServices"));
         //每十秒对服务列表进行刷新一次
+        ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1, new NameThreadFactory("doSubscribeAllServices"));
         scheduledThreadPool.scheduleWithFixedDelay(() -> doSubscribeAllServices(), 10, 10, TimeUnit.SECONDS);
     }
 
@@ -137,24 +137,30 @@ public class NacosRegisterCenter implements RegisterCenter {
 
             //分页从Nacos拿到服务列表
             List<String> serviceList = namingService.getServicesOfServer(pageNo, pageSize, env).getData();
-            while (serviceList.size() == pageSize) {
-                log.info("service size is {}", serviceList.size());
+
+            while (CollectionUtils.isNotEmpty(serviceList)) {
+                log.info("service list size {}", serviceList.size());
 
                 for (String service : serviceList) {
                     if (subscribeService.contains(service)) {
                         continue;
                     }
 
-                    //Nacos事件监听器
+                    //nacos事件监听器
                     EventListener eventListener = new NacosRegisterListener();
                     eventListener.onEvent(new NamingEvent(service, null));
                     namingService.subscribe(service, env, eventListener);
-                    log.info("subscribe {} []", service, env);
+                    log.info("subscribe {} {}", service, env);
                 }
-
-                serviceList = namingService
-                        .getServicesOfServer(++pageNo, pageSize, env).getData();
+                if (serviceList.size() >= pageSize) {
+                    serviceList = namingService
+                            .getServicesOfServer(++pageNo, pageSize, env).getData();
+                }else {
+                    break;
+                }
             }
+
+
         } catch (NacosException e) {
             throw new RuntimeException(e);
         }
@@ -171,17 +177,19 @@ public class NacosRegisterCenter implements RegisterCenter {
                 try {
                     //获取服务定义信息
                     Service service = namingMaintainService.queryService(serviceName, env);
-                    ServiceDefinition serviceDefinition = JSON.parseObject(service.getMetadata().get(GatewayConst.META_DATA_KEY), ServiceDefinition.class);
+                    ServiceDefinition serviceDefinition = JSON.parseObject(service.getMetadata()
+                            .get(GatewayConst.META_DATA_KEY), ServiceDefinition.class);
 
                     //获取实例信息
-                    List<Instance> allInstances = namingService.getAllInstances(serviceName, env);
+                    List<Instance> allInstances = namingService.getAllInstances(service.getName(), env);
                     Set<ServiceInstance> set = new HashSet<>();
 
                     for (Instance instance : allInstances) {
-                        ServiceInstance serviceInstance = JSON.parseObject(instance.getMetadata().get(GatewayConst.META_DATA_KEY), ServiceInstance.class);
+                        ServiceInstance serviceInstance = JSON.parseObject(instance.getMetadata()
+                                .get(GatewayConst.META_DATA_KEY), ServiceInstance.class);
                         set.add(serviceInstance);
                     }
-                    registerCenterListenerList.forEach(listener -> {
+                    registerCenterListenerList.stream().forEach(listener -> {
                         listener.onChange(serviceDefinition, set);
                     });
                 } catch (NacosException e) {
