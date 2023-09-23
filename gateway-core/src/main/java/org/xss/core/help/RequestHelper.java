@@ -28,14 +28,7 @@ public class RequestHelper {
 		GatewayRequest gateWayRequest = doRequest(request, ctx);
 		
 		//	根据请求对象里的uniqueId，获取资源服务信息(也就是服务定义信息)
-		ServiceDefinition serviceDefinition = ServiceDefinition.builder()
-				.serviceId(gateWayRequest.getUniqueId())
-				.enable(true)
-				.version("v1")
-				.patternPath("**")
-				.envType("dev")
-				.protocol(GatewayProtocol.HTTP)
-				.build();
+		ServiceDefinition serviceDefinition = DynamicConfigManager.getInstance().getServiceDefinition(gateWayRequest.getUniqueId());
 
 		
 		//	根据请求对象获取服务定义对应的方法调用，然后获取对应的规则
@@ -44,7 +37,7 @@ public class RequestHelper {
 		serviceInvoker.setTimeout(500);
 
 		//根据请求对象获取Rule
-		Rule rule = getRule(gateWayRequest);
+		Rule rule = getRule(gateWayRequest,serviceDefinition.getServiceId());
 		
 		//	构建我们而定GateWayContext对象
 		GatewayContext gatewayContext = new GatewayContext(
@@ -52,11 +45,10 @@ public class RequestHelper {
 				ctx,
 				HttpUtil.isKeepAlive(request),
 				gateWayRequest,
-				new Rule());
+				rule);
 
-
-		//后续服务发现做完，这里都要改成动态的
-		gatewayContext.getRequest().setModifyHost("127.0.0.1:8080");
+		//后续服务发现做完，这里都要改成动态的,在负载均衡算法已经实现
+		// gatewayContext.getRequest().setModifyHost("127.0.0.1:8080");
 
 		return gatewayContext;
 	}
@@ -81,8 +73,8 @@ public class RequestHelper {
 				uniqueId,
 				charset,
 				clientIp,
-				host, 
-				uri, 
+				host,
+				uri,
 				method,
 				contentType,
 				headers,
@@ -111,19 +103,17 @@ public class RequestHelper {
 		return clientIp;
 	}
 
-	private static Rule getRule(GatewayRequest gateWayRequest){
-		String key = gateWayRequest.getUniqueId() + "." + gateWayRequest.getPath();
+	private static Rule getRule(GatewayRequest gateWayRequest,String serviceId){
+		String key = serviceId + "." + gateWayRequest.getPath();
 		Rule rule = DynamicConfigManager.getInstance().getRuleByPath(key);
 
 		if (rule != null){
 			return rule;
 		}
 
-		return DynamicConfigManager.getInstance().getRuleByServiceId(gateWayRequest.getUniqueId())
+		return DynamicConfigManager.getInstance().getRuleByServiceId(serviceId)
 				.stream().filter(r -> gateWayRequest.getPath().startsWith(r.getPrefix()))
 				.findAny()
 				.orElseThrow(() -> new RuntimeException(PATH_NO_MATCHED.getMessage()));
-
-
 	}
 }

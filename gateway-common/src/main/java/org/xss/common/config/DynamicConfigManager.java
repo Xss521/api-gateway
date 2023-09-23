@@ -43,7 +43,6 @@ public class DynamicConfigManager {
                                      ServiceDefinition serviceDefinition) {
 
         serviceDefinitionMap.put(uniqueId, serviceDefinition);
-        ;
     }
 
     public ServiceDefinition getServiceDefinition(String uniqueId) {
@@ -61,7 +60,8 @@ public class DynamicConfigManager {
     /***************** 	对服务实例缓存进行操作的系列方法 	***************/
 
     public Set<ServiceInstance> getServiceInstanceByUniqueId(String uniqueId) {
-        return serviceInstanceMap.get(uniqueId);
+        Set<ServiceInstance> serviceInstances = serviceInstanceMap.get(uniqueId);
+        return  serviceInstances;
     }
 
     public void addServiceInstance(String uniqueId, ServiceInstance serviceInstance) {

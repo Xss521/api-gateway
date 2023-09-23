@@ -41,7 +41,7 @@ public class ConfigLoader {
      * <h3>加载配置文件<h3/>
      * 优先级高的会覆盖掉优先级较低的
      * 运行参数 -> jvm参数 -> 环境变量 -> 配置文件 -> 配置对象默认值
-     *
+     *java -Dkey=value -e key=value YourClassName -Dkey=value设置JVM参数，-e Key=value设置环境参数
      * @param args
      * @return Config
      */
@@ -54,7 +54,7 @@ public class ConfigLoader {
         loadFormEnv();
         //jvm参数
         loadFormJvm();
-        //运行参数
+        //运行参数 java XXX.class arg1 arg2 arg3
         loadFormArgs(args);
         return config;
     }

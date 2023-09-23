@@ -37,6 +37,8 @@ public class BootStrap {
         });
         //初始化配置中心
         configCenter.init(config.getRegisterAddr(), config.getEnv());
+
+        //回调函数，当配置中心发生变化时，会重新执行该方法
         configCenter.subscribeRuleChange(rules -> DynamicConfigManager.getInstance().putAllRule(rules));
 
 
@@ -51,15 +53,13 @@ public class BootStrap {
 
 
         // 服务优雅关机
-        // 收到Kill信号时，调用虚拟机钩子函数，进行注销
+        // 服务关闭时，调用虚拟机钩子函数，先将该服务从注册中心移除，并且优雅关机，关闭Netty
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             registerCenter.deregister(
                     buildGatewayServiceDefinition(config),
                     buildGatewayServiceInstance(config));
             container.shutDown();
         }));
-
-
     }
 
 
@@ -86,6 +86,7 @@ public class BootStrap {
                         JSON.toJSON(serviceInstanceSet));
                 DynamicConfigManager manager = DynamicConfigManager.getInstance();
                 manager.addServiceInstance(serviceDefinition.getUniqueId(), serviceInstanceSet);
+                manager.putServiceDefinition(serviceDefinition.getUniqueId(),serviceDefinition);
             }
         });
         return registerCenter;

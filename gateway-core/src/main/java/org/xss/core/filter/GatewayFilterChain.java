@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Slf4j
 public class GatewayFilterChain {
-    private List<Filter> filters = null;
+    private List<Filter> filters = new ArrayList<>();
 
     public GatewayFilterChain addFilter(Filter filter) {
         this.filters.add(filter);

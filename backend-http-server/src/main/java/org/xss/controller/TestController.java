@@ -25,6 +25,7 @@ public class TestController {
     @GetMapping("/http-server/ping")
     public String ping() {
         System.out.println(apiProperties);
+        System.out.println("我被访问了");
         return "pong";
     }
 }

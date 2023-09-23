@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * @author MR.XSS
  * 2023/9/21 16:14
- * 过滤器注解类
+ * 过滤器注解类,可以标记过滤器ID、名称和过滤器顺序
  */
 @Documented
 @Target(ElementType.TYPE)

@@ -52,7 +52,7 @@ public class NacosConfigCenter implements ConfigCenter {
      *@Params: [listener]
      *@return: void
      *@date 2023/9/21 9:12
-     *@描述: 订阅Nacos配置，监听Nacos配置中心配置变化，变化情况如何处理交给子类去实现
+     *@描述: 订阅Nacos配置，将Nacos配置中心配置加载到本地，并且监听Nacos服务变化情况，若Nacso配置中心配置发生变化，覆盖掉原来配置，重新加载进入本地缓存
      */
     @Override
     public void subscribeRuleChange(RulesChangeListener listener) {
@@ -73,7 +73,7 @@ public class NacosConfigCenter implements ConfigCenter {
 
                 //监听服务变化，具体交给启动类实现
                 @Override
-                public void receiveConfigInfo(String configInfo) {
+                public void receiveConfigInfo(String configInfo/* 配置中心Json字符串 */) {
                     log.info("config from nacos: {}", configInfo);
                     List<Rule> rules = JSON.parseObject(configInfo).getJSONArray("rules").toJavaList(Rule.class);
                     listener.onRuleChange(rules);

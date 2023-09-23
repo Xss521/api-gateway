@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.xss.common.config.Rule;
 import org.xss.core.context.GatewayContext;
+import org.xss.core.filter.router.RouterFilter;
 
 import java.util.*;
 
@@ -15,6 +16,14 @@ import java.util.*;
 public class GatewayFilterChainFactory implements FilterFactory {
 
     Map<String, Filter> processFilterIdMap = new LinkedHashMap<>();
+
+    //单例模式获取过滤器工厂
+    private static class SingletonInstance {
+        private static final GatewayFilterChainFactory INSTANCE = new GatewayFilterChainFactory();
+    }
+    public static GatewayFilterChainFactory getInstance() {
+        return SingletonInstance.INSTANCE;
+    }
 
     public GatewayFilterChainFactory() {
         ServiceLoader<Filter> serviceLoader = ServiceLoader.load(Filter.class);
@@ -33,13 +42,6 @@ public class GatewayFilterChainFactory implements FilterFactory {
         });
     }
 
-    //单例模式获取过滤器工厂
-    private static class SingletonInstance {
-        private static final GatewayFilterChainFactory INSTANCE = new GatewayFilterChainFactory();
-    }
-    public static GatewayFilterChainFactory getInstance() {
-        return SingletonInstance.INSTANCE;
-    }
 
     @Override
     public GatewayFilterChain buildFilterChain(GatewayContext ctx) throws Exception {
@@ -63,7 +65,8 @@ public class GatewayFilterChainFactory implements FilterFactory {
             }
         }
 
-        //TODO 添加路由过滤器-
+        // 添加路由过滤器-
+        filters.add(new RouterFilter());
 
         //根据order对过滤器进行排序
         filters.sort(Comparator.comparingInt(Filter::getOrder));

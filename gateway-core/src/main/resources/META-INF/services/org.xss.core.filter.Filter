@@ -1,1 +1,2 @@
-org.xss.core.filter.
+org.xss.core.filter.loadbalance.LoadBalanceFilter
+org.xss.core.filter.router.RouterFilter

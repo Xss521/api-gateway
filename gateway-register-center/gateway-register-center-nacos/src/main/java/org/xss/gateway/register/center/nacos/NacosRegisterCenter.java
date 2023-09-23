@@ -102,6 +102,13 @@ public class NacosRegisterCenter implements RegisterCenter {
         }
     }
 
+    /**
+     *@author: MR.XSS
+     *@Params: [serviceDefinition, serviceInstance]
+     *@return: void
+     *@date 2023/9/23 20:31
+     *@描述: 注销实例信息
+     */
     @Override
     public void deregister(ServiceDefinition serviceDefinition, ServiceInstance serviceInstance) {
         try {
@@ -112,6 +119,13 @@ public class NacosRegisterCenter implements RegisterCenter {
         }
     }
 
+    /**
+     *@author: MR.XSS
+     *@Params: [listener]
+     *@return: void
+     *@date 2023/9/23 20:32
+     *@描述:
+     */
     @Override
     public void subscribeAllServices(RegisterCenterListener listener) {
         registerCenterListenerList.add(listener);
