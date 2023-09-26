@@ -58,6 +58,16 @@ public class Rule implements Comparable<Rule>, Serializable {
      */
     private Set<FilterConfig> filterConfigs = new HashSet<>();
 
+    /**
+     * 重试配置
+     */
+    private RetryConfig retryConfig = new RetryConfig();
+
+    /**
+     * 限流规则
+     */
+    private Set<FlowCtlConfig> flowCtlConfigs = new HashSet<>();
+
     public Rule() {
         super();
     }
@@ -119,6 +129,47 @@ public class Rule implements Comparable<Rule>, Serializable {
     }
 
     /**
+     * @author: MR.XSS
+     * @date 2023/9/25 19:07
+     * @描述: 重试规则
+     */
+    public static class RetryConfig {
+        //重试次数
+        private int times;
+
+        public int getTimes() {
+            return times;
+        }
+
+        public void setTimes(int times) {
+            this.times = times;
+        }
+    }
+
+    @Data
+    public static class FlowCtlConfig{
+        /**
+         * 限流类型 --可能是path、IP或者服务
+         */
+        private String type;
+
+        /**
+         * 限流对象
+         */
+        private String value;
+
+        /**
+         * 限流模式 --单机或者分布式
+         */
+        private String model;
+
+        /**
+         * 限流规则
+         */
+        private String config;
+    }
+
+    /**
      * 向规则里面提供一些新增配置的方法
      *
      * @param filterConfig
@@ -127,6 +178,7 @@ public class Rule implements Comparable<Rule>, Serializable {
     public boolean addFilterConfig(FilterConfig filterConfig) {
         return filterConfigs.add(filterConfig);
     }
+
 
     /**
      * 通过指定的ID获取指定的配置信息
@@ -186,5 +238,13 @@ public class Rule implements Comparable<Rule>, Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public RetryConfig getRetryConfig() {
+        return retryConfig;
+    }
+
+    public void setRetryConfig(RetryConfig retryConfig) {
+        this.retryConfig = retryConfig;
     }
 }

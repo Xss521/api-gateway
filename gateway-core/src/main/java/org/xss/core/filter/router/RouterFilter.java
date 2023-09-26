@@ -3,6 +3,7 @@ package org.xss.core.filter.router;
 import lombok.extern.slf4j.Slf4j;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
+import org.xss.common.config.Rule;
 import org.xss.common.enums.ResponseCode;
 import org.xss.common.exception.ConnectException;
 import org.xss.common.exception.ResponseException;
@@ -15,6 +16,7 @@ import org.xss.core.help.ResponseHelper;
 import org.xss.core.request.GatewayRequest;
 import org.xss.core.response.GatewayResponse;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
@@ -31,8 +33,16 @@ import static org.xss.common.constants.FilterConst.*;
         name = ROUTER_FILTER_NAME,
         order = ROUTER_FILTER_ORDER)
 public class RouterFilter implements Filter {
+
+    /**
+     * @author: MR.XSS
+     * @Params: [gatewayContext]
+     * @return: void
+     * @date 2023/9/25 19:36
+     * @描述: 处理请求，单异步和双异步模式
+     */
     @Override
-    public void doFilter(GatewayContext gatewayContext) throws Exception{
+    public void doFilter(GatewayContext gatewayContext) throws Exception {
         GatewayRequest gatewayRequest = gatewayContext.getRequest();
         Request request = gatewayRequest.build();
         CompletableFuture<Response> future = AsyncHttpHelper.getInstance().executeRequest(request);
@@ -59,10 +69,17 @@ public class RouterFilter implements Filter {
                           GatewayContext ctx) {
         //处理完成Request请求时，释放请求资源，避免造成内存泄漏
         ctx.releaseRequest();
+        Rule rule = ctx.getRule();
+        int curRetryTimes = ctx.getCurrentRetryTimes();
+        int configRetryTimes = rule.getRetryConfig().getTimes();
+        if ((throwable instanceof TimeoutException || throwable instanceof IOException) && curRetryTimes <= configRetryTimes) {
+            doRetry(ctx, curRetryTimes);
+        }
         try {
-            //出现异常，将异常设置到上席文对象中去
+            //出现异常，进行重试，进行容错处理
             if (Objects.nonNull(throwable)) {
                 String url = request.getUrl();
+
                 if (throwable instanceof TimeoutException) {
                     log.warn("complete time is out {}", url);
                     ctx.setThrowable(new ResponseException(ResponseCode.REQUEST_TIMEOUT));
@@ -80,6 +97,23 @@ public class RouterFilter implements Filter {
             //处理结束，标记为写回状态，并且将响应结果返回
             ctx.written();
             ResponseHelper.writeResponse(ctx);
+        }
+    }
+
+    /**
+     * @author: MR.XSS
+     * @Params: [ctx, curRetryTimes]
+     * @return: void
+     * @date 2023/9/25 19:33
+     * @描述: 重试方法
+     */
+    private void doRetry(GatewayContext ctx, int curRetryTimes) {
+        log.info("当前是第{}次重试", curRetryTimes);
+        ctx.setCurrentRetryTimes(curRetryTimes + 1);
+        try {
+            doFilter(ctx);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

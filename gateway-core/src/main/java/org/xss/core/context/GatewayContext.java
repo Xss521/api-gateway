@@ -20,16 +20,20 @@ public class GatewayContext extends BaseContext {
 
     public Rule rule;
 
+    public int currentRetryTimes;
+
 
     public GatewayContext(String protocol,
                           ChannelHandlerContext nettyCtx,
                           boolean keepAlive,
                           GatewayRequest request,
-                          Rule rule) {
+                          Rule rule,
+                          int currentRetryTimes) {
 
         super(protocol, nettyCtx, keepAlive);
         this.request = request;
         this.rule = rule;
+        this.currentRetryTimes = currentRetryTimes;
     }
 
     /**
@@ -83,7 +87,7 @@ public class GatewayContext extends BaseContext {
             AssertUtil.notNull(request, "request can not null!");
             AssertUtil.notNull(rule, "rule can not null!");
 
-            return new GatewayContext(protocol, nettyCtx, keepAlive, request, rule);
+            return new GatewayContext(protocol, nettyCtx, keepAlive, request, rule,0);
         }
     }
 
@@ -157,5 +161,13 @@ public class GatewayContext extends BaseContext {
 
     public void setRule(Rule rule) {
         this.rule = rule;
+    }
+
+    public int getCurrentRetryTimes() {
+        return currentRetryTimes;
+    }
+
+    public void setCurrentRetryTimes(int currentRetryTimes) {
+        this.currentRetryTimes = currentRetryTimes;
     }
 }
